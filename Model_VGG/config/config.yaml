@@ -1,0 +1,18 @@
+defaults:
+  - data: ds_medium
+model:
+  _target_: engine.model.vgg.VGG11
+paths:
+  data: ../../../../1_data
+
+params:
+  epoch_count: 3
+  lr: 5e-4
+  train:
+    batch_size: 128
+  test:
+    batch_size: 100
+args:
+  resume: False
+  lr: 0.1
+
