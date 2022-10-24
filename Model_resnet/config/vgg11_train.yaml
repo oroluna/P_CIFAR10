@@ -1,0 +1,15 @@
+model:
+  _target_: models.vgg.VGG11
+paths:
+  data: ./data
+params:
+  epoch_count: 2
+  lr: 5e-4
+  train:
+    batch_size: 128
+  test:
+    batch_size: 100
+args:
+  resume: False
+  lr: 0.1
+
