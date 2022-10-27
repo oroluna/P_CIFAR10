@@ -2,24 +2,16 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 
 import torchvision
 import torchvision.transforms as transforms
 import csv
 import numpy as np
-
-import os
-
-
-#local imorts
-
-from engine.model import *
 from engine.utils.utils import progress_bar
 from plotting import *
 
-#Hydra import
+
 
 from omegaconf import DictConfig, OmegaConf
 import hydra
@@ -29,12 +21,6 @@ import hydra
 def my_app(cfg: DictConfig) -> None:
     print("Working directory : {}".format(os.getcwd()))
     print(OmegaConf.to_yaml(cfg))
-
-    # parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
-    # parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
-    # parser.add_argument('--resume', '-r', action='store_true',
-    #                    help='resume from checkpoint')
-    # args = parser.parse_args()
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     best_acc = 0  # best test accuracy
@@ -75,27 +61,9 @@ def my_app(cfg: DictConfig) -> None:
 
     # Model
     print('==> Building model..')
-    # net = VGG('VGG19')
-    # net = ResNet18()
 
     # instantiante model
     net = hydra.utils.instantiate(cfg.model)
-    # net = VGG11()
-    # net = ResNet34()
-
-    # net = PreActResNet18()
-    # net = GoogLeNet()
-    # net = DenseNet121()
-    # net = ResNeXt29_2x64d()
-    # net = MobileNet()
-    # net = MobileNetV2()
-    # net = DPN92()
-    # net = ShuffleNetG2()
-    # net = SENet18()
-    # net = ShuffleNetV2(1)
-    # net = EfficientNetB0()
-    # net = RegNetX_200MF()
-    # net = SimpleDLA()
     net = net.to(device)
     if device == 'cuda':
         net = torch.nn.DataParallel(net)
@@ -188,15 +156,13 @@ def my_app(cfg: DictConfig) -> None:
         class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
                        'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
 
-        print("PREDS", y_pred)
-        print("TRUE", y_true)
+
         cf_matrix = confusion_matrix(y_true, y_pred)
         make_confusion_matrix(OUTPUT_ROUTE, y_true=y_true,
                               y_pred=y_pred,
                               classes=class_names,
                               figsize=(15, 15),
                               text_size=10)
-        print("CF_MATRIX", cf_matrix)
 
         # Save checkpoint.
         acc = 100. * correct / total
@@ -221,7 +187,7 @@ def my_app(cfg: DictConfig) -> None:
     #### SAVE IN TO CSV ####
     hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
     OUTPUT_ROUTE = hydra_cfg['runtime']['output_dir']
-    print("OUTPUT ROUTE", OUTPUT_ROUTE)
+
 
     with open(f"{OUTPUT_ROUTE}/train.csv", "w") as csv_train, open(f"{OUTPUT_ROUTE}/test.csv", "w") as csv_test:
         fieldnames = ['acumulated_iteration', 'relative_iteration', 'epoch', 'accuracy', 'loss']
