@@ -7,14 +7,17 @@ import torch.backends.cudnn as cudnn
 
 import torchvision
 import torchvision.transforms as transforms
-
+import csv
 import numpy as np
 
 import os
-import argparse 
+
+
+#local imorts
 
 from engine.model import *
 from engine.utils.utils import progress_bar
+from plotting import *
 
 #Hydra import
 
@@ -22,17 +25,16 @@ from omegaconf import DictConfig, OmegaConf
 import hydra
 
 
-@hydra.main(version_base="1.1", config_path="config", config_name="config")
-def my_app(cfg : DictConfig) -> None:
+@hydra.main(version_base=None, config_path="config", config_name="config")
+def my_app(cfg: DictConfig) -> None:
     print("Working directory : {}".format(os.getcwd()))
     print(OmegaConf.to_yaml(cfg))
 
-
-    #parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
-    #parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
-    #parser.add_argument('--resume', '-r', action='store_true',
+    # parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
+    # parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
+    # parser.add_argument('--resume', '-r', action='store_true',
     #                    help='resume from checkpoint')
-    #args = parser.parse_args()
+    # args = parser.parse_args()
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     best_acc = 0  # best test accuracy
@@ -55,8 +57,7 @@ def my_app(cfg : DictConfig) -> None:
     trainset = torchvision.datasets.CIFAR10(
         root=cfg.paths.data, train=True, download=True, transform=transform_train)
     # Sample train subset
-    
-    num_train_samples =  cfg.data.train
+    num_train_samples = 50
     sample_train = torch.utils.data.Subset(trainset, np.arange(num_train_samples))
 
     trainloader = torch.utils.data.DataLoader(
@@ -66,19 +67,35 @@ def my_app(cfg : DictConfig) -> None:
     testset = torchvision.datasets.CIFAR10(
         root=cfg.paths.data, train=False, download=True, transform=transform_test)
     # Sample test subset
-    num_test_samples = cfg.data.test
+    num_test_samples = 10
     sample_test = torch.utils.data.Subset(testset, np.arange(num_test_samples))
 
     testloader = torch.utils.data.DataLoader(
         sample_test, batch_size=cfg.params.test.batch_size, shuffle=False, num_workers=2)
 
-    classes = ('plane', 'car', 'bird', 'cat', 'deer',
-            'dog', 'frog', 'horse', 'ship', 'truck')
-
     # Model
     print('==> Building model..')
-    # net = VGG('VGG11')
+    # net = VGG('VGG19')
+    # net = ResNet18()
+
+    # instantiante model
     net = hydra.utils.instantiate(cfg.model)
+    # net = VGG11()
+    # net = ResNet34()
+
+    # net = PreActResNet18()
+    # net = GoogLeNet()
+    # net = DenseNet121()
+    # net = ResNeXt29_2x64d()
+    # net = MobileNet()
+    # net = MobileNetV2()
+    # net = DPN92()
+    # net = ShuffleNetG2()
+    # net = SENet18()
+    # net = ShuffleNetV2(1)
+    # net = EfficientNetB0()
+    # net = RegNetX_200MF()
+    # net = SimpleDLA()
     net = net.to(device)
     if device == 'cuda':
         net = torch.nn.DataParallel(net)
@@ -98,12 +115,12 @@ def my_app(cfg : DictConfig) -> None:
     criterion = nn.CrossEntropyLoss()
     print(cfg.args.lr)
     optimizer = optim.SGD(net.parameters(), lr=cfg.args.lr,
-                        momentum=0.9, weight_decay=cfg.params.lr)
+                          momentum=0.9, weight_decay=cfg.params.lr)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
-
 
     # Training
     def train(epoch):
+        global train_iteration
         print('\nEpoch: %d' % epoch)
         net.train()
         train_loss = 0
@@ -123,19 +140,36 @@ def my_app(cfg : DictConfig) -> None:
             correct += predicted.eq(targets).sum().item()
 
             progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                        % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
-
+                         % (train_loss / (batch_idx + 1), 100. * correct / total, correct, total))
+            train_writer.writerow({'acumulated_iteration': train_iteration, 'relative_iteration': batch_idx,
+                                   'epoch': 1 / len(trainloader) * train_iteration, 'accuracy': 100. * correct / total,
+                                   'loss': train_loss / (batch_idx + 1)})
+            train_iteration += 1
 
     def test(epoch, best_acc=best_acc):
+        global test_iteration
         best_acc
         net.eval()
         test_loss = 0
         correct = 0
         total = 0
         with torch.no_grad():
+            y_pred = []
+            y_true = []
+
             for batch_idx, (inputs, targets) in enumerate(testloader):
                 inputs, targets = inputs.to(device), targets.to(device)
                 outputs = net(inputs)
+
+                # Confusion matrix
+                output = (torch.max(torch.exp(outputs), 1)[1]).data.cpu().numpy()
+                y_pred.extend(output)  # Save Prediction
+
+                labels = targets.data.cpu().numpy()
+                y_true.extend(labels)  # Save Truth
+
+                # constant for classes
+
                 loss = criterion(outputs, targets)
 
                 test_loss += loss.item()
@@ -144,10 +178,28 @@ def my_app(cfg : DictConfig) -> None:
                 correct += predicted.eq(targets).sum().item()
 
                 progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                            % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
+                             % (test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
+
+                test_writer.writerow({'acumulated_iteration': test_iteration, 'relative_iteration': batch_idx,
+                                      'epoch': 1 / len(testloader) * test_iteration, 'accuracy': 100. * correct / total,
+                                      'loss': test_loss / (batch_idx + 1)})
+                test_iteration += 1
+
+        class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
+                       'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
+
+        print("PREDS", y_pred)
+        print("TRUE", y_true)
+        cf_matrix = confusion_matrix(y_true, y_pred)
+        make_confusion_matrix(OUTPUT_ROUTE, y_true=y_true,
+                              y_pred=y_pred,
+                              classes=class_names,
+                              figsize=(15, 15),
+                              text_size=10)
+        print("CF_MATRIX", cf_matrix)
 
         # Save checkpoint.
-        acc = 100.*correct/total
+        acc = 100. * correct / total
         if acc > best_acc:
             print('Saving..')
             state = {
@@ -159,19 +211,38 @@ def my_app(cfg : DictConfig) -> None:
                 os.mkdir('checkpoint')
             torch.save(state, './checkpoint/ckpt.pth')
             best_acc = acc
-          
+
             # Save metrics in outputs/year-month-day/hour-minut-second
             hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
             with open(f"{hydra_cfg['runtime']['output_dir']}/main.log", "w") as file:
                 file.write('Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                            % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
+                           % (test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
 
-          
+    #### SAVE IN TO CSV ####
+    hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
+    OUTPUT_ROUTE = hydra_cfg['runtime']['output_dir']
+    print("OUTPUT ROUTE", OUTPUT_ROUTE)
 
-    for epoch in range(start_epoch, start_epoch+cfg.params.epoch_count):
-        train(epoch)
-        test(epoch)
-        scheduler.step()
+    with open(f"{OUTPUT_ROUTE}/train.csv", "w") as csv_train, open(f"{OUTPUT_ROUTE}/test.csv", "w") as csv_test:
+        fieldnames = ['acumulated_iteration', 'relative_iteration', 'epoch', 'accuracy', 'loss']
+        train_writer = csv.DictWriter(csv_train, fieldnames=fieldnames)
+        train_writer.writeheader()
+
+        test_writer = csv.DictWriter(csv_test, fieldnames=fieldnames)
+        test_writer.writeheader()
+
+        for epoch in range(start_epoch, start_epoch + cfg.params.epoch_count):
+            train(epoch)
+
+            test(epoch)
+            scheduler.step()
+
+    plot_moving_average(OUTPUT_ROUTE)
+    plot_train_log(OUTPUT_ROUTE)
+
 
 if __name__ == "__main__":
+    train_iteration = 1
+    test_iteration = 1
     my_app()
+

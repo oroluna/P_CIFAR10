@@ -3,7 +3,7 @@ defaults:
   - data: ds_small
   - model: vgg11_train
 paths:
-  data: ../../../../1_data
+  data: ../../1_data
 
 params:
   epoch_count: 3
