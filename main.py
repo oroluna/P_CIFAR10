@@ -205,6 +205,8 @@ def my_app(cfg: DictConfig) -> None:
 
     plot_moving_average(OUTPUT_ROUTE)
     plot_train_log(OUTPUT_ROUTE)
+    plot_loss(OUTPUT_ROUTE)
+    plot_accuracy(OUTPUT_ROUTE)
 
 
 if __name__ == "__main__":

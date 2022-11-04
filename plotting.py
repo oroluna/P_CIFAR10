@@ -139,6 +139,44 @@ def make_confusion_matrix(route, y_true, y_pred, classes=None, figsize=(10, 10),
 
     plt.savefig(f"{route}/artefacts/confusion_matrix.jpg", bbox_inches='tight')
 
+def plot_loss(route):
+    train_log = pd.read_csv(f'{route}/train.csv')
+    test_log = pd.read_csv(f'{route}/test.csv')
+    # Plot loss
+    train_epochs = range(len(train_log.loss))
+    test_epochs = np.linspace(0, len(train_log.loss), len(test_log.loss))
+    plt.figure()
+    plt.plot(train_epochs, train_log.loss, label='training_loss')
+    plt.plot(test_epochs, test_log.loss, label='val_loss')
+    plt.title('Loss')
+    plt.xlabel('Epochs')
+    plt.legend()
+    if not os.path.exists(f"{route}/artefacts"):
+        os.mkdir(f"{route}/artefacts")
+
+    plt.savefig(f"{route}/artefacts/loss_artefact.jpg", bbox_inches='tight')
+
+def plot_accuracy(route):
+    train_log = pd.read_csv(f'{route}/train.csv')
+    test_log = pd.read_csv(f'{route}/test.csv')
+    # Plot loss
+    train_epochs = range(len(train_log.accuracy))
+    test_epochs = np.linspace(0, len(train_log.accuracy), len(test_log.loss))
+    plt.figure()
+    plt.plot(train_epochs, train_log.accuracy, label='training_accuracy')
+    plt.plot(test_epochs, test_log.accuracy, label='val_accuracy')
+    plt.title('Accuracy')
+    plt.xlabel('Epochs')
+    plt.legend()
+    if not os.path.exists(f"{route}/artefacts"):
+        os.mkdir(f"{route}/artefacts")
+
+    plt.savefig(f"{route}/artefacts/accuracy_artefact.jpg", bbox_inches='tight')
+
+
+
+
+
     
 
     
