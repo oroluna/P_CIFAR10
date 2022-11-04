@@ -1,2 +1,2 @@
-train: 40000
-test: 8000
+train: 5000
+test: 1000
