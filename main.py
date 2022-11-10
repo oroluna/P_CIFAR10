@@ -82,8 +82,13 @@ def my_app(cfg: DictConfig) -> None:
 
     criterion = nn.CrossEntropyLoss()
     print(cfg.args.lr)
-    optimizer = optim.SGD(net.parameters(), lr=cfg.args.lr,
-                          momentum=0.9, weight_decay=cfg.params.lr)
+    # optimizer = optim.SGD(net.parameters(), lr=cfg.args.lr,
+    #                       momentum=0.9, weight_decay=cfg.params.lr)
+
+    optimizer = hydra.utils.call(cfg.optimizer, net.parameters(), lr=cfg.optimizer.lr,
+                          momentum=cfg.optimizer.momentum, weight_decay=cfg.optimizer.weight_decay)
+
+
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
 
     # Training

@@ -2,6 +2,7 @@ defaults:
   - _self_
   - data: ds_small
   - model: vgg11_train
+  - optimizer: sgd
 paths:
   data: ../../1_data
 
