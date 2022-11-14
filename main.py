@@ -84,9 +84,8 @@ def my_app(cfg: DictConfig) -> None:
     print(cfg.args.lr)
     # optimizer = optim.SGD(net.parameters(), lr=cfg.args.lr,
     #                       momentum=0.9, weight_decay=cfg.params.lr)
-
-    optimizer = hydra.utils.call(cfg.optimizer, net.parameters(), lr=cfg.optimizer.lr,
-                          momentum=cfg.optimizer.momentum, weight_decay=cfg.optimizer.weight_decay)
+    print("PARAMS", dict(cfg.optimizer.params))
+    optimizer = hydra.utils.call(cfg.optimizer, params=net.parameters(), **cfg.optimizer.params)
 
 
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
