@@ -7,6 +7,7 @@ import torch.backends.cudnn as cudnn
 import torchvision
 import torchvision.transforms as transforms
 import csv
+import pandas as pd
 import numpy as np
 from engine.utils.utils import progress_bar
 from plotting import *
@@ -66,20 +67,7 @@ def my_app(cfg: DictConfig) -> None:
 
     # Model
     print('==> Building model..')
-    # net = VGG('VGG19')
-    # net = ResNet18()
-    # net = PreActResNet18()
-    # net = GoogLeNet()
-    # net = DenseNet121()
-    # net = ResNeXt29_2x64d()
-    # net = MobileNet()
-    # net = MobileNetV2()
-    # net = DPN92()
-    # net = ShuffleNetG2()
-    # net = SENet18()
-    # net = ShuffleNetV2(1)
-    # net = EfficientNetB0()
-    # net = RegNetX_200MF()
+
     net = hydra.utils.instantiate(cfg.model)
     net = net.to(device)
     if device == 'cuda':
@@ -122,6 +110,11 @@ def my_app(cfg: DictConfig) -> None:
             progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                          % (train_loss / (batch_idx + 1), 100. * correct / total, correct, total))
 
+        train_loss = train_loss / len(trainloader)
+        train_acc = correct / len(trainloader)
+
+        return train_loss, train_acc
+
     def test(epoch):
         global best_acc
         net.eval()
@@ -156,10 +149,41 @@ def my_app(cfg: DictConfig) -> None:
             torch.save(state, './checkpoint/ckpt.pth')
             best_acc = acc
 
+        test_loss = test_loss / len(testloader)
+        test_acc = correct / len(testloader)
+
+        return test_loss, test_acc
+
+    results = {
+        "epoch": [],
+        "train_loss": [],
+        "train_acc": [],
+        "test_loss": [],
+        "test_acc": []
+    }
+
     for epoch in range(start_epoch, start_epoch + cfg.params.epoch_count):
-        train(epoch)
-        test(epoch)
+
+        train_loss, train_acc = train(epoch)
+        test_loss, test_acc = test(epoch)
+
+        # Update results dictionary
+        results["epoch"].append(epoch)
+        results["train_loss"].append(train_loss)
+        results["train_acc"].append(train_acc)
+        results["test_loss"].append(test_loss)
+        results["test_acc"].append(test_acc)
+
+
         scheduler.step()
+
+    #### SAVE IN TO CSV ####
+    hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
+    OUTPUT_ROUTE = hydra_cfg['runtime']['output_dir']
+    df = pd.DataFrame(results)
+    df.to_csv(f"{OUTPUT_ROUTE}/metrics.csv", index=False)
+    print(df)
+
 
 
 if __name__ == "__main__":
