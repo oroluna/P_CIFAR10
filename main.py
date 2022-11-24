@@ -23,7 +23,7 @@ def my_app(cfg: DictConfig) -> None:
     print(OmegaConf.to_yaml(cfg))
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    best_acc = 0  # best test accuracy
+
     start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 
     # Data
@@ -122,8 +122,8 @@ def my_app(cfg: DictConfig) -> None:
             progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                          % (train_loss / (batch_idx + 1), 100. * correct / total, correct, total))
 
-    def test(epoch, best_acc=best_acc):
-
+    def test(epoch):
+        global best_acc
         net.eval()
         test_loss = 0
         correct = 0
@@ -163,7 +163,8 @@ def my_app(cfg: DictConfig) -> None:
 
 
 if __name__ == "__main__":
-    train_iteration = 1
-    test_iteration = 1
+    # train_iteration = 1
+    # test_iteration = 1
+    best_acc = 0  # best test accuracy
     my_app()
 
