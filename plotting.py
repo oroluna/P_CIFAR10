@@ -7,8 +7,8 @@ import numpy as np
 
 
 def plot_train_log(route):
-    train_log = pd.read_csv(f'{route}/train.csv')
-    test_log  = pd.read_csv(f'{route}/test.csv')
+    train_log = pd.read_csv(f'{route}/metrics/train_iteration_metrics.csv')
+    test_log  = pd.read_csv(f'{route}/metrics/test_iteration_metrics.csv')
 
     fig, ax1 = plt.subplots(figsize=(12,8),facecolor='w')
     line11 = ax1.plot(train_log.epoch, train_log.loss, linewidth=2, label='Train loss', color='b', alpha=0.3)
@@ -49,8 +49,8 @@ def moving_average(a, n=3) :
 
 def plot_moving_average(route):
 
-    train_log = pd.read_csv(f'{route}/train.csv')
-    test_log  = pd.read_csv(f'{route}/test.csv')
+    train_log = pd.read_csv(f'{route}/metrics/train_iteration_metrics.csv')
+    test_log  = pd.read_csv(f'{route}/metrics/test_iteration_metrics.csv')
 
     epoch    = moving_average(np.array(train_log.epoch),40)
     accuracy = moving_average(np.array(train_log.accuracy),40)
@@ -140,8 +140,8 @@ def make_confusion_matrix(route, y_true, y_pred, classes=None, figsize=(10, 10),
     plt.savefig(f"{route}/artefacts/confusion_matrix.jpg", bbox_inches='tight')
 
 def plot_loss(route):
-    train_log = pd.read_csv(f'{route}/train.csv')
-    test_log = pd.read_csv(f'{route}/test.csv')
+    train_log = pd.read_csv(f'{route}/metrics/train_iteration_metrics.csv')
+    test_log = pd.read_csv(f'{route}/metrics/test_iteration_metrics.csv')
     # Plot loss
     train_epochs = range(len(train_log.loss))
     test_epochs = np.linspace(0, len(train_log.loss), len(test_log.loss))
@@ -157,8 +157,8 @@ def plot_loss(route):
     plt.savefig(f"{route}/artefacts/loss_artefact.jpg", bbox_inches='tight')
 
 def plot_accuracy(route):
-    train_log = pd.read_csv(f'{route}/train.csv')
-    test_log = pd.read_csv(f'{route}/test.csv')
+    train_log = pd.read_csv(f'{route}/metrics/train_iteration_metrics.csv')
+    test_log = pd.read_csv(f'{route}/metrics/test_iteration_metrics.csv')
     # Plot loss
     train_epochs = range(len(train_log.accuracy))
     test_epochs = np.linspace(0, len(train_log.accuracy), len(test_log.loss))

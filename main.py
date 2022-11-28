@@ -12,6 +12,10 @@ import numpy as np
 from engine.utils.utils import progress_bar
 from plotting import *
 
+from sklearn.metrics import confusion_matrix
+import seaborn as sn
+import matplotlib.pyplot as plt
+
 
 
 from omegaconf import DictConfig, OmegaConf
@@ -110,6 +114,10 @@ def my_app(cfg: DictConfig) -> None:
             progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                          % (train_loss / (batch_idx + 1), 100. * correct / total, correct, total))
 
+            train_iterations_results["loss"].append(train_loss / (batch_idx + 1))
+            train_iterations_results["accuracy"].append(100. * correct / total)
+            train_iterations_results["epoch"].append(epoch)
+
         train_loss = train_loss / len(trainloader)
         train_acc = correct / len(trainloader)
 
@@ -135,6 +143,10 @@ def my_app(cfg: DictConfig) -> None:
                 progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                              % (test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
 
+                test_iterations_results["loss"].append(test_loss / (batch_idx + 1))
+                test_iterations_results["accuracy"].append(100. * correct / total)
+                test_iterations_results["epoch"].append(epoch)
+
         # Save checkpoint.
         acc = 100. * correct / total
         if acc > best_acc:
@@ -154,12 +166,28 @@ def my_app(cfg: DictConfig) -> None:
 
         return test_loss, test_acc
 
-    results = {
+
+    ############ TRAINING ############
+
+
+    epoch_results = {
         "epoch": [],
         "train_loss": [],
         "train_acc": [],
         "test_loss": [],
         "test_acc": []
+    }
+
+    train_iterations_results = {
+        "epoch": [],
+        "loss": [],
+        "accuracy": [],
+    }
+
+    test_iterations_results = {
+        "epoch": [],
+        "loss": [],
+        "accuracy": [],
     }
 
     for epoch in range(start_epoch, start_epoch + cfg.params.epoch_count):
@@ -168,21 +196,67 @@ def my_app(cfg: DictConfig) -> None:
         test_loss, test_acc = test(epoch)
 
         # Update results dictionary
-        results["epoch"].append(epoch)
-        results["train_loss"].append(train_loss)
-        results["train_acc"].append(train_acc)
-        results["test_loss"].append(test_loss)
-        results["test_acc"].append(test_acc)
-
+        epoch_results["epoch"].append(epoch)
+        epoch_results["train_loss"].append(train_loss)
+        epoch_results["train_acc"].append(train_acc)
+        epoch_results["test_loss"].append(test_loss)
+        epoch_results["test_acc"].append(test_acc)
 
         scheduler.step()
 
-    #### SAVE IN TO CSV ####
+    # get output route
     hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
     OUTPUT_ROUTE = hydra_cfg['runtime']['output_dir']
-    df = pd.DataFrame(results)
-    df.to_csv(f"{OUTPUT_ROUTE}/metrics.csv", index=False)
-    print(df)
+
+    # CONFUSION MATRIX
+    y_pred = []
+    y_true = []
+
+    # iterate over test data
+    for inputs, labels in testloader:
+        output = net(inputs)  # Feed Network
+
+        output = (torch.max(torch.exp(output), 1)[1]).data.cpu().numpy()
+        y_pred.extend(output)  # Save Prediction
+
+        labels = labels.data.cpu().numpy()
+        y_true.extend(labels)  # Save Truth
+
+
+    #### SAVE IN TO CSV ####
+
+    if not os.path.exists(f"{OUTPUT_ROUTE}/metrics"):
+        os.mkdir(f"{OUTPUT_ROUTE}/metrics")
+
+    # save epoch metrics
+    epoch_metrics_df = pd.DataFrame(epoch_results)
+    epoch_metrics_df.to_csv(f"{OUTPUT_ROUTE}/metrics/epoch_metrics.csv", index=False)
+
+    # save train iterations metrics
+    train_iterations_metrics_df = pd.DataFrame(train_iterations_results)
+    train_iterations_metrics_df.to_csv(f"{OUTPUT_ROUTE}/metrics/train_iteration_metrics.csv", index=False)
+
+    # save max_accuracy_iteration per epoch
+    max_accuracy_per_epoch = train_iterations_metrics_df.groupby("epoch")["accuracy"].max()
+    print(max_accuracy_per_epoch)
+
+    # save max accuracy iteration
+    max_accuracy_iteration = train_iterations_metrics_df[train_iterations_metrics_df["accuracy"] == train_iterations_metrics_df["accuracy"].max()]
+    max_accuracy_iteration.to_csv('max_accuracy_iteration.csv', mode='a', header=False)
+    print(train_iterations_metrics_df[train_iterations_metrics_df["accuracy"] == train_iterations_metrics_df["accuracy"].max()])
+
+    # save test iterations metrics
+    test_iterations_metrics_df = pd.DataFrame(test_iterations_results)
+    test_iterations_metrics_df.to_csv(f"{OUTPUT_ROUTE}/metrics/test_iteration_metrics.csv", index=False)
+
+    #### PLOTTING ####
+    make_confusion_matrix(OUTPUT_ROUTE, y_true, y_pred, classes)
+
+    plot_moving_average(OUTPUT_ROUTE)
+    plot_train_log(OUTPUT_ROUTE)
+    plot_loss(OUTPUT_ROUTE)
+    plot_accuracy(OUTPUT_ROUTE)
+
 
 
 
