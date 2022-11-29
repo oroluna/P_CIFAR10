@@ -236,10 +236,6 @@ def my_app(cfg: DictConfig) -> None:
     if not os.path.exists(f"{OUTPUT_ROUTE}/metrics"):
         os.mkdir(f"{OUTPUT_ROUTE}/metrics")
 
-    # save epoch metrics
-    epoch_metrics_df = pd.DataFrame(epoch_results)
-    epoch_metrics_df.to_csv(f"{OUTPUT_ROUTE}/metrics/epoch_metrics.csv", index=False)
-
     # create train iterations metrics dataframe
     train_iterations_metrics_df = pd.DataFrame(train_iterations_results)
 
@@ -249,32 +245,50 @@ def my_app(cfg: DictConfig) -> None:
     # save train iterations metrics
     train_iterations_metrics_df.to_csv(f"{OUTPUT_ROUTE}/metrics/train_iteration_metrics.csv", index=False)
 
-    # save train_max_accuracy_iteration per epoch
-    train_max_accuracy_per_epoch = train_iterations_metrics_df.groupby("epoch")["accuracy"].max()
-    train_max_accuracy_per_epoch.to_csv(f"{OUTPUT_ROUTE}/metrics/train_max_accuracy_per_epoch.csv")
+    # create test iterations metrics dataframe
+    test_iterations_metrics_df = pd.DataFrame(test_iterations_results)
 
-    # save min_loss_iteration per epoch
-    train_min_loss_per_epoch = train_iterations_metrics_df.groupby("epoch")["loss"].min()
-    train_min_loss_per_epoch.to_csv(f"{OUTPUT_ROUTE}/metrics/train_min_loss_per_epoch.csv")
+    # save test iteration metrics
+    test_iterations_metrics_df.to_csv(f"{OUTPUT_ROUTE}/metrics/test_iteration_metrics.csv", index=False)
 
-    # save max accuracy iteration
+    # create epoch metrics
+    epoch_metrics_df = pd.DataFrame(epoch_results)
+
+    # add train_max_accuracy_iteration per epoch
+    epoch_metrics_df['train_max_accuracy_iteration'] = train_iterations_metrics_df.groupby("epoch")["accuracy"].max()
+
+    # add train_min_accuracy_iteration per epoch
+    epoch_metrics_df['train_min_accuracy_iteration'] = train_iterations_metrics_df.groupby("epoch")["accuracy"].min()
+
+    # add train_max_loss_iteration per epoch
+    epoch_metrics_df['train_max_loss_iteration'] = train_iterations_metrics_df.groupby("epoch")["loss"].max()
+
+    # add train_min_loss_iteration per epoch
+    epoch_metrics_df['train_min_loss_iteration'] = train_iterations_metrics_df.groupby("epoch")["loss"].min()
+
+    # add test_max_accuracy_iteration per epoch
+    epoch_metrics_df['test_max_accuracy_iteration'] = test_iterations_metrics_df.groupby("epoch")["accuracy"].max()
+
+    # add test_max_accuracy_iteration per epoch
+    epoch_metrics_df['test_min_accuracy_iteration'] = test_iterations_metrics_df.groupby("epoch")["accuracy"].min()
+
+    # add min_loss_iteration per epoch
+    epoch_metrics_df['test_max_loss_iteration'] = test_iterations_metrics_df.groupby("epoch")["loss"].max()
+
+    # add min_loss_iteration per epoch
+    epoch_metrics_df['test_min_loss_iteration'] = test_iterations_metrics_df.groupby("epoch")["loss"].min()
+
+    print(epoch_metrics_df)
+
+    # save epoch metrics
+    epoch_metrics_df.to_csv(f"{OUTPUT_ROUTE}/metrics/epoch_metrics.csv", index=False)
+
+    # save train max accuracy iteration
     train_max_accuracy_iteration = train_iterations_metrics_df[
         train_iterations_metrics_df["accuracy"] == train_iterations_metrics_df["accuracy"].max()]
     train_max_accuracy_iteration.to_csv('train_max_accuracy_iteration.csv', mode='a', header=False)
 
-    # save test iterations metrics
-    test_iterations_metrics_df = pd.DataFrame(test_iterations_results)
-    test_iterations_metrics_df.to_csv(f"{OUTPUT_ROUTE}/metrics/test_iteration_metrics.csv", index=False)
-
-    # save test_max_accuracy_iteration per epoch
-    test_max_accuracy_per_epoch = test_iterations_metrics_df.groupby("epoch")["accuracy"].max()
-    test_max_accuracy_per_epoch.to_csv(f"{OUTPUT_ROUTE}/metrics/test_max_accuracy_per_epoch.csv")
-
-    # save min_loss_iteration per epoch
-    test_min_loss_per_epoch = test_iterations_metrics_df.groupby("epoch")["loss"].min()
-    test_min_loss_per_epoch.to_csv(f"{OUTPUT_ROUTE}/metrics/test_min_loss_per_epoch.csv")
-
-    # save max accuracy iteration
+    # save test max accuracy iteration
     test_max_accuracy_iteration = test_iterations_metrics_df[
         test_iterations_metrics_df["accuracy"] == test_iterations_metrics_df["accuracy"].max()]
     test_max_accuracy_iteration.to_csv('test_max_accuracy_iteration.csv', mode='a', header=False)
