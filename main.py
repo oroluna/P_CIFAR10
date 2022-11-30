@@ -260,28 +260,42 @@ def my_app(cfg: DictConfig) -> None:
     # add train_min_accuracy_iteration per epoch
     epoch_metrics_df['train_min_accuracy_iteration'] = train_iterations_metrics_df.groupby("epoch")["accuracy"].min()
 
+    # add train_mean_accuracy_iteration per epoch
+    epoch_metrics_df['train_mean_accuracy_iteration'] = train_iterations_metrics_df.groupby("epoch")["accuracy"].mean()
+
     # add train_max_loss_iteration per epoch
     epoch_metrics_df['train_max_loss_iteration'] = train_iterations_metrics_df.groupby("epoch")["loss"].max()
 
     # add train_min_loss_iteration per epoch
     epoch_metrics_df['train_min_loss_iteration'] = train_iterations_metrics_df.groupby("epoch")["loss"].min()
 
+    # add train_mean_loss_iteration per epoch
+    epoch_metrics_df['train_mean_loss_iteration'] = train_iterations_metrics_df.groupby("epoch")["loss"].mean()
+
     # add test_max_accuracy_iteration per epoch
     epoch_metrics_df['test_max_accuracy_iteration'] = test_iterations_metrics_df.groupby("epoch")["accuracy"].max()
 
-    # add test_max_accuracy_iteration per epoch
+    # add test_min_accuracy_iteration per epoch
     epoch_metrics_df['test_min_accuracy_iteration'] = test_iterations_metrics_df.groupby("epoch")["accuracy"].min()
 
-    # add min_loss_iteration per epoch
+    # add test_mean_accuracy_iteration per epoch
+    epoch_metrics_df['test_mean_accuracy_iteration'] = test_iterations_metrics_df.groupby("epoch")["accuracy"].mean()
+
+    # add test_max_loss_iteration per epoch
     epoch_metrics_df['test_max_loss_iteration'] = test_iterations_metrics_df.groupby("epoch")["loss"].max()
 
-    # add min_loss_iteration per epoch
+    # add test_min_loss_iteration per epoch
     epoch_metrics_df['test_min_loss_iteration'] = test_iterations_metrics_df.groupby("epoch")["loss"].min()
+
+    # add test_min_loss_iteration per epoch
+    epoch_metrics_df['test_mean_loss_iteration'] = test_iterations_metrics_df.groupby("epoch")["loss"].mean()
 
     print(epoch_metrics_df)
 
     # save epoch metrics
     epoch_metrics_df.to_csv(f"{OUTPUT_ROUTE}/metrics/epoch_metrics.csv", index=False)
+
+    print(train_iterations_metrics_df.describe())
 
     # save train max accuracy iteration
     train_max_accuracy_iteration = train_iterations_metrics_df[
