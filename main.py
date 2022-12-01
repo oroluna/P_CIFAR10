@@ -6,17 +6,10 @@ import torch.backends.cudnn as cudnn
 
 import torchvision
 import torchvision.transforms as transforms
-import csv
 import pandas as pd
 import numpy as np
 from engine.utils.utils import progress_bar
 from plotting import *
-
-from sklearn.metrics import confusion_matrix
-import seaborn as sn
-import matplotlib.pyplot as plt
-
-
 
 from omegaconf import DictConfig, OmegaConf
 import hydra
@@ -239,9 +232,6 @@ def my_app(cfg: DictConfig) -> None:
     # create train iterations metrics dataframe
     train_iterations_metrics_df = pd.DataFrame(train_iterations_results)
 
-    # add moving average accuracy to train iterations
-    train_iterations_metrics_df['moving_acc_average'] = train_iterations_metrics_df['accuracy'].expanding().mean()
-
     # save train iterations metrics
     train_iterations_metrics_df.to_csv(f"{OUTPUT_ROUTE}/metrics/train_iteration_metrics.csv", index=False)
 
@@ -290,33 +280,27 @@ def my_app(cfg: DictConfig) -> None:
     # add test_min_loss_iteration per epoch
     epoch_metrics_df['test_mean_loss_iteration'] = test_iterations_metrics_df.groupby("epoch")["loss"].mean()
 
-    print(epoch_metrics_df)
-
     # save epoch metrics
     epoch_metrics_df.to_csv(f"{OUTPUT_ROUTE}/metrics/epoch_metrics.csv", index=False)
 
-    print(train_iterations_metrics_df.describe())
-
     # save train max accuracy iteration
     train_max_accuracy_iteration = train_iterations_metrics_df[
-        train_iterations_metrics_df["accuracy"] == train_iterations_metrics_df["accuracy"].max()]
-    train_max_accuracy_iteration.to_csv('train_max_accuracy_iteration.csv', mode='a', header=False)
+        train_iterations_metrics_df["accuracy"] == train_iterations_metrics_df["accuracy"].max()].iloc[-1:]
+    train_max_accuracy_iteration.index.name = 'iteration'
+    train_max_accuracy_iteration.to_csv(f"{OUTPUT_ROUTE}/metrics/T_train_max_accuracy_iteration.csv", mode='a')
 
     # save test max accuracy iteration
     test_max_accuracy_iteration = test_iterations_metrics_df[
-        test_iterations_metrics_df["accuracy"] == test_iterations_metrics_df["accuracy"].max()]
-    test_max_accuracy_iteration.to_csv('test_max_accuracy_iteration.csv', mode='a', header=False)
-
+        test_iterations_metrics_df["accuracy"] == test_iterations_metrics_df["accuracy"].max()].iloc[-1:]
+    test_max_accuracy_iteration.index.name = 'iteration'
+    test_max_accuracy_iteration.to_csv(f"{OUTPUT_ROUTE}/metrics/T_test_max_accuracy_iteration.csv", mode='a')
 
     #### PLOTTING ####
     make_confusion_matrix(OUTPUT_ROUTE, y_true, y_pred, classes)
 
-    plot_moving_average(OUTPUT_ROUTE)
     plot_train_log(OUTPUT_ROUTE)
     plot_loss(OUTPUT_ROUTE)
     plot_accuracy(OUTPUT_ROUTE)
-
-
 
 
 if __name__ == "__main__":
