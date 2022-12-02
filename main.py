@@ -115,7 +115,7 @@ def my_app(cfg: DictConfig) -> None:
                          % (train_loss / (batch_idx + 1), 100. * correct / total, correct, total))
 
             loss = train_loss / (batch_idx + 1)
-            accuracy = 100. * correct / total
+            accuracy = correct / total
 
 
 
@@ -149,7 +149,7 @@ def my_app(cfg: DictConfig) -> None:
                              % (test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
 
                 loss = test_loss / (batch_idx + 1)
-                accuracy = 100. * correct / total
+                accuracy = correct / total
 
                 test_iterations_results["loss"].append(loss)
                 test_iterations_results["accuracy"].append(accuracy)
