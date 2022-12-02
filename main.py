@@ -297,7 +297,7 @@ def my_app(cfg: DictConfig) -> None:
 
     #### PLOTTING ####
     make_confusion_matrix(OUTPUT_ROUTE, y_true, y_pred, classes)
-
+    plot_moving_average(OUTPUT_ROUTE)
     plot_train_log(OUTPUT_ROUTE)
     plot_loss(OUTPUT_ROUTE)
     plot_accuracy(OUTPUT_ROUTE)
