@@ -296,4 +296,3 @@ if __name__ == "__main__":
     # test_iteration = 1
     best_acc = 0  # best test accuracy
     my_app()
-
