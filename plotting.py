@@ -10,26 +10,26 @@ def plot_train_log(route):
     train_log = pd.read_csv(f'{route}/metrics/train_iteration_metrics.csv')
     test_log  = pd.read_csv(f'{route}/metrics/test_iteration_metrics.csv')
 
-    fig, ax1 = plt.subplots(figsize=(12,8),facecolor='w')
+    fig, ax1 = plt.subplots(figsize=(12, 8), facecolor='w')
     line11 = ax1.plot(train_log.epoch, train_log.loss, linewidth=2, label='Train loss', color='b', alpha=0.3)
     line12 = ax1.plot(test_log.epoch, test_log.loss, marker='o', markersize=12, linestyle='', label='Test loss', color='blue')
-    ax1.set_xlabel('Epoch',fontweight='bold',fontsize=24,color='black')
-    ax1.tick_params('x',colors='black',labelsize=18)
-    ax1.set_ylabel('Loss', fontsize=24, fontweight='bold',color='b')
-    ax1.tick_params('y',colors='b',labelsize=18)
+    ax1.set_xlabel('Epoch', fontweight='bold', fontsize=24, color='black')
+    ax1.tick_params('x', colors='black', labelsize=18)
+    ax1.set_ylabel('Loss', fontsize=24, fontweight='bold', color='b')
+    ax1.tick_params('y', colors='b', labelsize=18)
 
     ax2 = ax1.twinx()
     line21 = ax2.plot(train_log.epoch, train_log.accuracy, linewidth=2, label='Train accuracy', color='r', alpha=0.3)
     line22 = ax2.plot(test_log.epoch, test_log.accuracy, marker='o', markersize=12, linestyle='', label='Test accuracy', color='red')
 
-    ax2.set_ylabel('Accuracy', fontsize=24, fontweight='bold',color='r')
-    ax2.tick_params('y',colors='r',labelsize=18)
+    ax2.set_ylabel('Accuracy', fontsize=24, fontweight='bold', color='r')
+    ax2.tick_params('y', colors='r', labelsize=18)
     ax2.set_ylim(0.,1.0)
 
     # added these four lines
-    lines  = line11 + line12 + line21 + line22
+    lines = line11 + line12 + line21 + line22
     labels = [l.get_label() for l in lines]
-    leg    = ax1.legend(lines, labels, fontsize=16, loc=5)
+    leg = ax1.legend(lines, labels, fontsize=16, loc=5)
     leg_frame = leg.get_frame()
     leg_frame.set_facecolor('white')
     
@@ -39,8 +39,6 @@ def plot_train_log(route):
         os.mkdir(f"{route}/artefacts")
         
     plt.savefig(f"{route}/artefacts/train_log.jpg", bbox_inches='tight')
-   
-
 
 def moving_average(a, n=3) :
     ret = np.cumsum(a, dtype=float)
@@ -50,32 +48,32 @@ def moving_average(a, n=3) :
 def plot_moving_average(route):
 
     train_log = pd.read_csv(f'{route}/metrics/train_iteration_metrics.csv')
-    test_log  = pd.read_csv(f'{route}/metrics/test_iteration_metrics.csv')
+    test_log = pd.read_csv(f'{route}/metrics/test_iteration_metrics.csv')
 
-    epoch    = moving_average(np.array(train_log.epoch),40)
-    accuracy = moving_average(np.array(train_log.accuracy),40)
-    loss     = moving_average(np.array(train_log.loss),40)
+    epoch = moving_average(np.array(train_log.epoch), 40)
+    accuracy = moving_average(np.array(train_log.accuracy), 40)
+    loss = moving_average(np.array(train_log.loss), 40)
 
-    fig, ax1 = plt.subplots(figsize=(12,8),facecolor='w')
+    fig, ax1 = plt.subplots(figsize=(12, 8), facecolor='w')
     line11 = ax1.plot(train_log.epoch, train_log.loss, linewidth=2, label='Loss', color='b', alpha=0.3)
     line12 = ax1.plot(epoch, loss, label='Loss (averaged)', color='blue')
-    ax1.set_xlabel('Epoch',fontweight='bold',fontsize=24,color='black')
-    ax1.tick_params('x',colors='black',labelsize=18)
-    ax1.set_ylabel('Loss', fontsize=24, fontweight='bold',color='b')
-    ax1.tick_params('y',colors='b',labelsize=18)
+    ax1.set_xlabel('Epoch', fontweight='bold', fontsize=24, color='black')
+    ax1.tick_params('x', colors='black', labelsize=18)
+    ax1.set_ylabel('Loss', fontsize=24, fontweight='bold', color='b')
+    ax1.tick_params('y', colors='b', labelsize=18)
 
     ax2 = ax1.twinx()
     line21 = ax2.plot(train_log.epoch, train_log.accuracy, linewidth=2, label='Accuracy', color='r', alpha=0.3)
     line22 = ax2.plot(epoch, accuracy, label='Accuracy (averaged)', color='red')
 
-    ax2.set_ylabel('Accuracy', fontsize=24, fontweight='bold',color='r')
-    ax2.tick_params('y',colors='r',labelsize=18)
-    ax2.set_ylim(0.,1.0)
+    ax2.set_ylabel('Accuracy', fontsize=24, fontweight='bold', color='r')
+    ax2.tick_params('y', colors='r', labelsize=18)
+    ax2.set_ylim(0., 1.0)
 
     # added these four lines
-    lines  = line11 + line12 + line21 + line22
+    lines = line11 + line12 + line21 + line22
     labels = [l.get_label() for l in lines]
-    leg    = ax1.legend(lines, labels, fontsize=16, loc=5)
+    leg = ax1.legend(lines, labels, fontsize=16, loc=5)
     leg_frame = leg.get_frame()
     leg_frame.set_facecolor('white')
 
