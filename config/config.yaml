@@ -1,6 +1,6 @@
 defaults:
   - _self_
-  - data: ds_small
+  - data: ds_medium
   - model: vgg11_train
   - optimizer: sgd
 paths:
@@ -10,9 +10,9 @@ params:
   epoch_count: 3
   lr: 5e-4
   train:
-    batch_size: 2
+    batch_size: 12
   test:
-    batch_size: 1
+    batch_size: 10
 args:
   resume: False
   lr: 0.1

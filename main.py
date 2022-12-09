@@ -4,12 +4,21 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
 
+import matplotlib.pyplot as plt
+
+from sklearn.metrics import confusion_matrix
+
+import pandas as pd
+
 import torchvision
 import torchvision.transforms as transforms
 import pandas as pd
 import numpy as np
 from engine.utils.utils import progress_bar
+
+# Locals
 from plotting import *
+from confusion_matrix import ConfusionMatrix
 
 from omegaconf import DictConfig, OmegaConf
 import hydra
@@ -210,18 +219,10 @@ def my_app(cfg: DictConfig) -> None:
     OUTPUT_ROUTE = hydra_cfg['runtime']['output_dir']
 
     # CONFUSION MATRIX
-    y_pred = []
-    y_true = []
-
-    # iterate over test data
-    for inputs, labels in testloader:
-        output = net(inputs)  # Feed Network
-
-        output = (torch.max(torch.exp(output), 1)[1]).data.cpu().numpy()
-        y_pred.extend(output)  # Save Prediction
-
-        labels = labels.data.cpu().numpy()
-        y_true.extend(labels)  # Save Truth
+    cm = ConfusionMatrix(net, testloader, classes)
+    y_pred = cm.y_pred
+    y_true = cm.y_true
+    print('CM', cm.cm)
 
 
     #### SAVE IN TO CSV ####
@@ -295,12 +296,27 @@ def my_app(cfg: DictConfig) -> None:
     test_max_accuracy_iteration.index.name = 'iteration'
     test_max_accuracy_iteration.to_csv(f"{OUTPUT_ROUTE}/metrics/T_test_max_accuracy_iteration.csv", mode='a')
 
+    # creating the metrics dataframe
+    metrics_df = pd.DataFrame(data=cm.get_metrics(),
+                      index=cm.classes,
+                      columns=cm.metrics)
+
+    # save metrics
+    metrics_df.to_csv(f"{OUTPUT_ROUTE}/metrics/metrics.csv")
+    print(metrics_df)
+
     #### PLOTTING ####
-    make_confusion_matrix(OUTPUT_ROUTE, y_true, y_pred, classes)
+    # make_confusion_matrix(OUTPUT_ROUTE, cm.cm, classes)
+    make_freq_confusion_matrix(OUTPUT_ROUTE, cm.cm, classes)
+    make_precent_confusion_matrix(OUTPUT_ROUTE, cm.cm, classes)
     plot_moving_average(OUTPUT_ROUTE)
     plot_train_log(OUTPUT_ROUTE)
     plot_loss(OUTPUT_ROUTE)
     plot_accuracy(OUTPUT_ROUTE)
+
+    for i in range(len(classes)):
+        cf_matrix = cm.class_confusion_matrix(i)
+        make_class_confusion_matrix(OUTPUT_ROUTE, cf_matrix, i, classes)
 
 
 if __name__ == "__main__":

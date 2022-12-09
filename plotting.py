@@ -4,6 +4,7 @@ import os
 import itertools
 from sklearn.metrics import confusion_matrix
 import numpy as np
+import seaborn as sn
 
 
 def plot_train_log(route):
@@ -86,19 +87,17 @@ def plot_moving_average(route):
     plt.savefig(f"{route}/artefacts/moving_average.jpg", bbox_inches='tight')
 
 
-def make_confusion_matrix(route, y_true, y_pred, classes=None, figsize=(10, 10), text_size=15):
-    # Create the confusion matrix
-    cm = confusion_matrix(y_true, y_pred)
-    cm_norm = cm.astype("float") / cm.sum(axis=1)[:, np.newaxis]  # normalize our confusion matrix
-    n_classes = cm.shape[0]
+def make_confusion_matrix(route, cm, classes=None, figsize=(10, 10), text_size=15):
 
-    # Let's prettify it
+    cm_norm = cm.astype("float") / cm.sum(axis=1)[:, np.newaxis]  # normalize it
+    n_classes = cm.shape[0]  # find the number of classes we're dealing with
+
+    # Plot the figure and make it pretty
     fig, ax = plt.subplots(figsize=figsize)
-    # Create a matrix plot
-    cax = ax.matshow(cm, cmap=plt.cm.Blues)
+    cax = ax.matshow(cm, cmap=plt.cm.Blues)  # colors will represent how 'correct' a class is, darker == better
     fig.colorbar(cax)
 
-    # Set labels to be classes
+    # Are there a list of classes?
     if classes:
         labels = classes
     else:
@@ -106,24 +105,19 @@ def make_confusion_matrix(route, y_true, y_pred, classes=None, figsize=(10, 10),
 
     # Label the axes
     ax.set(title="Confusion Matrix",
-           xlabel="Predicted Label",
-           ylabel="True Label",
-           # xticks=np.arange(n_classes),
-           # yticks=np.arange(n_classes),
-           xticklabels=labels,
+           xlabel="Predicted label",
+           ylabel="True label",
+           xticks=np.arange(n_classes),  # create enough axis slots for each class
+           yticks=np.arange(n_classes),
+           xticklabels=labels,  # axes will labeled with class names (if they exist) or ints
            yticklabels=labels)
 
-    # Set x-axis labels to bottom
+    # Make x-axis labels appear on bottom
     ax.xaxis.set_label_position("bottom")
     ax.xaxis.tick_bottom()
 
-    # Adjust label size
-    ax.yaxis.label.set_size(text_size)
-    ax.xaxis.label.set_size(text_size)
-    ax.title.set_size(text_size)
-
-    # Set threshold for different colors
-    threshold = (cm.max() + cm.min()) / 2
+    # Set the threshold for different colors
+    threshold = (cm.max() + cm.min()) / 2.
 
     # Plot the text on each cell
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
@@ -172,6 +166,50 @@ def plot_accuracy(route):
         os.mkdir(f"{route}/artefacts")
 
     plt.savefig(f"{route}/artefacts/accuracy_artefact.jpg", bbox_inches='tight')
+
+
+def make_freq_confusion_matrix(route, cf_matrix, classes=None):
+
+    df_cm = pd.DataFrame(cf_matrix, index=[i for i in classes],
+                         columns=[i for i in classes])
+    plt.figure(figsize=(12, 7))
+    sn.heatmap(df_cm, annot=True, cmap="Blues")
+
+    if not os.path.exists(f"{route}/artefacts"):
+        os.mkdir(f"{route}/artefacts")
+
+    plt.savefig(f"{route}/artefacts/freq_confusion_matrix.jpg", bbox_inches='tight')
+
+def make_precent_confusion_matrix(route, cf_matrix, classes=None):
+    # Build confusion matrix
+
+    df_cm = pd.DataFrame(cf_matrix/np.sum(cf_matrix) * 10, index=[i for i in classes],
+                         columns=[i for i in classes])
+    plt.figure(figsize=(12, 7))
+    sn.heatmap(df_cm, annot=True, cmap="Blues")
+
+    if not os.path.exists(f"{route}/artefacts"):
+        os.mkdir(f"{route}/artefacts")
+
+    plt.savefig(f"{route}/artefacts/percent_confusion_matrix.jpg", bbox_inches='tight')
+
+
+def make_class_confusion_matrix(route, cf_matrix, class_num, classes):
+    indexes = ['1', '0']
+    df_cm = pd.DataFrame(cf_matrix, index=[i for i in indexes],
+                         columns=[i for i in indexes])
+
+    plt.figure(figsize=(12, 7))
+    plt.title(classes[class_num], fontsize=17)
+    plt.xlabel('Years', fontsize=15)  # x-axis label with fontsize 15
+    plt.ylabel('Monthes', fontsize=15)  # y-axis label with fontsize 15
+
+    sn.heatmap(df_cm, annot=True, cmap="Blues", fmt='g', annot_kws={"size": 30})
+
+    if not os.path.exists(f"{route}/artefacts"):
+        os.mkdir(f"{route}/artefacts")
+
+    plt.savefig(f"{route}/artefacts/C_{classes[class_num]}_confusion_matrix.jpg", bbox_inches='tight')
 
 
 
