@@ -6,7 +6,7 @@ class ConfusionMatrix:
 
     def __init__(self, net, testloader, classes):
         self.classes = classes
-        self.metrics = ['Tasa error', 'Exactitud', 'Precision', 'Recall', 'Specificity', 'F1 score']
+        self.metrics = ['Tasa error', 'Exactitud', 'Precision', 'Recall', 'Specificity', 'F1 score', 'TP rate', 'TN rate', 'FP rate']
         self.y_pred = []
         self.y_true = []
         self.get_preds(net, testloader)
@@ -52,8 +52,11 @@ class ConfusionMatrix:
             re = tp / (tp + fn)
             es = tn / (tn + fp)
             fs = 2 * pr * re / (pr + re)
+            tpr = tp / (fn + tp)
+            tnr = tn / (tn + fp)
+            fpr = fp / (tn + fp)
 
-            metric_list = [te, ex, pr, re, es, fs]
+            metric_list = [te, ex, pr, re, es, fs, tpr, tnr, fpr]
 
             for metric_num in range(ncols):
                 cme[class_num, metric_num] = metric_list[metric_num]
