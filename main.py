@@ -23,6 +23,40 @@ from confusion_matrix import ConfusionMatrix
 from omegaconf import DictConfig, OmegaConf
 import hydra
 
+import os
+import sys
+from omegaconf import DictConfig, ListConfig, OmegaConf
+
+import hydra
+from hydra import utils
+import mlflow
+import torch
+import torch.nn as nn
+import torch.backends.cudnn as cudnn
+import torchvision
+import torchvision.transforms as transforms
+import pandas as pd
+import numpy as np
+from engine.utils.utils import progress_bar
+
+
+
+def log_params_from_omegaconf_dict(params):
+    for param_name, element in params.items():
+        _explore_recursive(param_name, element)
+
+
+def _explore_recursive(parent_name, element):
+    if isinstance(element, DictConfig):
+        for k, v in element.items():
+            if isinstance(v, DictConfig) or isinstance(v, ListConfig):
+                _explore_recursive(f'{parent_name}.{k}', v)
+            else:
+                mlflow.log_param(f'{parent_name}.{k}', v)
+    elif isinstance(element, ListConfig):
+        for i, v in enumerate(element):
+            mlflow.log_param(f'{parent_name}.{i}', v)
+
 
 @hydra.main(version_base=None, config_path="config", config_name="config")
 def my_app(cfg: DictConfig) -> None:
@@ -101,6 +135,7 @@ def my_app(cfg: DictConfig) -> None:
         correct = 0
         total = 0
         for batch_idx, (inputs, targets) in enumerate(trainloader):
+            steps = epoch * len(trainloader) + batch_idx
             inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()
             outputs = net(inputs)
@@ -112,12 +147,18 @@ def my_app(cfg: DictConfig) -> None:
             _, predicted = outputs.max(1)
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
+            accuracy = float(correct / total)
 
             progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                          % (train_loss / (batch_idx + 1), 100. * correct / total, correct, total))
 
+            mlflow.log_metric("loss", loss.item(), step=steps)
+            mlflow.log_metric("acc", accuracy, step=steps)
+
             loss = train_loss / (batch_idx + 1)
             accuracy = correct / total
+
+
 
 
 
@@ -128,7 +169,9 @@ def my_app(cfg: DictConfig) -> None:
         train_loss = train_loss / len(trainloader)
         train_acc = correct / len(trainloader)
 
-        return train_loss, train_acc
+
+
+        return train_loss, accuracy
 
     def test(epoch):
         global best_acc
@@ -138,6 +181,7 @@ def my_app(cfg: DictConfig) -> None:
         total = 0
         with torch.no_grad():
             for batch_idx, (inputs, targets) in enumerate(testloader):
+                steps = epoch * len(testloader) + batch_idx
                 inputs, targets = inputs.to(device), targets.to(device)
                 outputs = net(inputs)
                 loss = criterion(outputs, targets)
@@ -146,9 +190,13 @@ def my_app(cfg: DictConfig) -> None:
                 _, predicted = outputs.max(1)
                 total += targets.size(0)
                 correct += predicted.eq(targets).sum().item()
+                accuracy = float(correct / total)
 
                 progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                              % (test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
+
+                mlflow.log_metric("loss", loss.item(), step=steps)
+                mlflow.log_metric("acc", accuracy, step=steps)
 
                 loss = test_loss / (batch_idx + 1)
                 accuracy = correct / total
@@ -156,6 +204,8 @@ def my_app(cfg: DictConfig) -> None:
                 test_iterations_results["loss"].append(loss)
                 test_iterations_results["accuracy"].append(accuracy)
                 test_iterations_results["epoch"].append(epoch)
+
+
 
         # Save checkpoint.
         acc = 100. * correct / total
@@ -173,6 +223,8 @@ def my_app(cfg: DictConfig) -> None:
 
         test_loss = test_loss / len(testloader)
         test_acc = correct / len(testloader)
+
+
 
         return test_loss, test_acc
 
@@ -200,19 +252,23 @@ def my_app(cfg: DictConfig) -> None:
         "accuracy": [],
     }
 
-    for epoch in range(start_epoch, start_epoch + cfg.params.epoch_count):
+    mlflow.set_tracking_uri('file://' + utils.get_original_cwd() + '/mlruns')
+    mlflow.set_experiment(cfg.mlflow.runname)
+    with mlflow.start_run():
+        for epoch in range(start_epoch, start_epoch + cfg.params.epoch_count):
+            log_params_from_omegaconf_dict(cfg)
+            train_loss, train_acc = train(epoch)
+            test_loss, test_acc = test(epoch)
 
-        train_loss, train_acc = train(epoch)
-        test_loss, test_acc = test(epoch)
+            # Update results dictionary
+            epoch_results["epoch"].append(epoch)
+            epoch_results["train_loss"].append(train_loss)
+            epoch_results["train_acc"].append(train_acc)
+            epoch_results["test_loss"].append(test_loss)
+            epoch_results["test_acc"].append(test_acc)
 
-        # Update results dictionary
-        epoch_results["epoch"].append(epoch)
-        epoch_results["train_loss"].append(train_loss)
-        epoch_results["train_acc"].append(train_acc)
-        epoch_results["test_loss"].append(test_loss)
-        epoch_results["test_acc"].append(test_acc)
+            scheduler.step()
 
-        scheduler.step()
 
     # get output route
     hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
@@ -317,7 +373,7 @@ def my_app(cfg: DictConfig) -> None:
     for i in range(len(classes)):
         cf_matrix = cm.class_confusion_matrix(i)
         make_class_confusion_matrix(OUTPUT_ROUTE, cf_matrix, i, classes)
-
+    return test_acc
 
 if __name__ == "__main__":
     # train_iteration = 1
