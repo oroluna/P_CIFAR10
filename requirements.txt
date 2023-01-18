@@ -8,3 +8,7 @@ omegaconf==2.2.3
 hydra-core==1.2.0
 seaborn==0.12.1
 filelock==3.8.0
+hydra-optuna-sweeper==2.10.1
+mlflow==1.30.0
+
+
