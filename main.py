@@ -1,30 +1,12 @@
 '''Train CIFAR10 with PyTorch.'''
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.backends.cudnn as cudnn
 
-import matplotlib.pyplot as plt
-
-from sklearn.metrics import confusion_matrix
-
-import pandas as pd
-
-import torchvision
-import torchvision.transforms as transforms
-import pandas as pd
-import numpy as np
-from engine.utils.utils import progress_bar
 
 # Locals
 from plotting import *
 from confusion_matrix import ConfusionMatrix
 
-from omegaconf import DictConfig, OmegaConf
-import hydra
 
 import os
-import sys
 from omegaconf import DictConfig, ListConfig, OmegaConf
 
 import hydra

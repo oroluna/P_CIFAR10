@@ -26,3 +26,12 @@ pip install -r requirements.txt
 ```
 python main.py --multirun 'model=choice(vgg11_train, resnet18_train, googlenet_train)' 'optimizer=choice(adam, sgd)'
 ```
+
+### Dataset slice
+- ds_small
+- ds_medium
+- ds_big
+- ds_default
+```
+ python main.py data=ds_medium 
+ ```
