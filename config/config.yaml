@@ -8,7 +8,7 @@ paths:
   data: ./1_data
 
 mlflow:
-  runname: "sample4"
+  runname: "sample77"
 
 params:
   epoch_count: 3
@@ -24,6 +24,12 @@ args:
 hydra:
   run:
     dir: ./outputs/${model._target_}/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweeper:
+    direction: maximize
+    study_name: sphere
+    storage: null
+    n_trials: 5
+    n_jobs: 1
 
 
 
