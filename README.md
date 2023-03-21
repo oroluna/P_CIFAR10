@@ -44,33 +44,33 @@ python main.py --multirun 'model=choice(vgg11_train, resnet18_train, googlenet_t
  | model  | argument |
 | ------------- | ------------- |
 | VGG11 (Deault)  | vgg11_train  |
-| DenseNet161  | Content Cell  |
-| DenseNet169  | Content Cell  |
-| DenseNet201  | Content Cell  |
-| densenet_cifar  | Content Cell  |
-| DLA  | Content Cell  |
-| DPN26  | Content Cell  |
-| DPN92  | Content Cell  |
-| EfficientNetB0  | Content Cell  |
-| GoogLeNet  | Content Cell  |
-| MobileNet  | Content Cell  |
-| MobileNetV2  | Content Cell  |
-| PNASNetA  | Content Cell  |
-| PNASNetB  | Content Cell  |
-| PreActResNet18  | Content Cell  |
-| PreActResNet34  | Content Cell  |
-| PreActResNet50  | Content Cell  |
-| PreActResNet101  | Content Cell  |
-| PreActResNet152  | Content Cell  |
-| RegNetX_200MF  | Content Cell  |
-| RegNetX_400MF  | Content Cell  |
-| RegNetY_400MF  | Content Cell  |
-| ResNet18  | Content Cell  |
-| ResNet34  | Content Cell  |
-| ResNet50  | Content Cell  |
-| ResNet101  | Content Cell  |
-| ResNet152  | Content Cell  |
-| ResNeXt29_2x64d  | Content Cell  |
+| DenseNet161  | densenet161_train  |
+| DenseNet169  | densenet169_train  |
+| DenseNet201  | densenet201_train  |
+| densenet_cifar  | densenetcifar_train  |
+| DLA  | dla_train  |
+| DPN26  | dpn26_train  |
+| DPN92  | dpn92_train  |
+| EfficientNetB0  | efficientnetb0_train  |
+| GoogLeNet  | googlenet_train  |
+| MobileNet  | mobilenet_train  |
+| MobileNetV2  | mobilenetv2_train  |
+| PNASNetA  | pnasneta_train  |
+| PNASNetB  | pnasnetb_train  |
+| PreActResNet18  | preactresnet18_train  |
+| PreActResNet34  | preactresnet34_train  |
+| PreActResNet50  | preactresnet50_train  |
+| PreActResNet101  | preactresnet101_train  |
+| PreActResNet152  | preactresnet152_train  |
+| RegNetX_200MF  | regnetx200mf_train  |
+| RegNetX_400MF  | regnetx400mf_train  |
+| RegNetY_400MF  | regnety400mf_train  |
+| ResNet18  | resnet18_train  |
+| ResNet34  | resnet34_train  |
+| ResNet50  | resnet50_train  |
+| ResNet101  | resnet101_train  |
+| ResNet152  | resnet152_train  |
+| ResNeXt29_2x64d  | resnext292x64d_train  |
 | ResNeXt29_4x64d  | Content Cell  |
 | ResNeXt29_8x64d  | Content Cell  |
 | ResNeXt29_32x4d  | Content Cell  |
