@@ -71,15 +71,15 @@ python main.py --multirun 'model=choice(vgg11_train, resnet18_train, googlenet_t
 | ResNet101  | resnet101_train  |
 | ResNet152  | resnet152_train  |
 | ResNeXt29_2x64d  | resnext292x64d_train  |
-| ResNeXt29_4x64d  | Content Cell  |
-| ResNeXt29_8x64d  | Content Cell  |
-| ResNeXt29_32x4d  | Content Cell  |
-| SENet18  | Content Cell  |
-| ShuffleNetG2  | Content Cell  |
-| ShuffleNetG3  | Content Cell  |
-| ShuffleNetV2  | Content Cell  |
-| SimpleDLA  | Content Cell  |
-| UNetX  | Content Cell  |
-| VGG13  | Content Cell  |
-| VGG16  | Content Cell  |
-| VGG19  | Content Cell  |
+| ResNeXt29_4x64d  | ResNeXt29_4x64d  |
+| ResNeXt29_8x64d  | ResNeXt29_8x64d  |
+| ResNeXt29_32x4d  | ResNeXt29_32x4d  |
+| SENet18  | SENet18  |
+| ShuffleNetG2  | ShuffleNetG2  |
+| ShuffleNetG3  | ShuffleNetG3  |
+| ShuffleNetV2  | ShuffleNetV2  |
+| SimpleDLA  | SimpleDLA  |
+| UNetX  | UNetX  |
+| VGG13  | VGG13  |
+| VGG16  | VGG16  |
+| VGG19  | VGG19  |
