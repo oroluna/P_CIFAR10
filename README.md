@@ -83,3 +83,8 @@ python main.py --multirun 'model=choice(vgg11_train, resnet18_train, googlenet_t
 | VGG13  | VGG13  |
 | VGG16  | VGG16  |
 | VGG19  | VGG19  |
+
+### Offline
+```
+ python3 main.py args.offline=True (or False)
+ ```
