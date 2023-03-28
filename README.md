@@ -88,3 +88,9 @@ python main.py --multirun 'model=choice(vgg11_train, resnet18_train, googlenet_t
 ```
  python3 main.py args.offline=True (or False)
  ```
+ 
+ ### Optimizer
+```
+ python3 main.py optimizer=adam (or sgd)
+
+ ```
