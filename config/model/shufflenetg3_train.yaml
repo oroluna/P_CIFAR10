@@ -1,3 +1,3 @@
-_target_: engine.model.shufflenet.ShuffleNetG2
+_target_: engine.model.shufflenet.ShuffleNetG3
 
 

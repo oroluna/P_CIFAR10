@@ -1,10 +1,10 @@
 '''Train CIFAR10 with PyTorch.'''
 
-
 # Locals
+from utils.clearmlplotting import *
 from plotting import *
-from confusion_matrix import ConfusionMatrix
-
+from utils.confusion_matrix import ConfusionMatrix
+from clearml import Task
 
 import os
 from omegaconf import DictConfig, ListConfig, OmegaConf
@@ -42,6 +42,9 @@ def _explore_recursive(parent_name, element):
 
 @hydra.main(version_base=None, config_path="config", config_name="config")
 def my_app(cfg: DictConfig) -> None:
+    Task.set_offline(offline_mode=cfg.args.offline)
+    # Initialize a Task
+    task = Task.init(project_name="examples", task_name="two")
     print("Working directory : {}".format(os.getcwd()))
     print(OmegaConf.to_yaml(cfg))
 
@@ -251,6 +254,15 @@ def my_app(cfg: DictConfig) -> None:
 
             scheduler.step()
 
+    # report line plot
+    clearmlplot(epoch_results["epoch"], epoch_results["train_loss"], epoch_results["train_acc"], "more lines")
+    # logger = Logger.current_logger()
+    #
+    # fig = go.Figure()
+    # fig.add_trace(go.Scatter(x=epoch_results["epoch"], y=epoch_results["train_loss"], name="train_loss"))
+    # fig.add_trace(go.Scatter(x=epoch_results["epoch"], y=epoch_results["train_acc"], name="train_acc"))
+    # # Log the plot to ClearML
+    # logger.report_plotly(title="Train Accuracy and loss", series="lines", iteration=0, figure=fig)
 
     # get output route
     hydra_cfg = hydra.core.hydra_config.HydraConfig.get()

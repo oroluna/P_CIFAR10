@@ -20,6 +20,7 @@ params:
 args:
   resume: False
   lr: 0.1
+  offline: True
 
 hydra:
   run:
